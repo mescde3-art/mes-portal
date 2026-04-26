@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MES Portal — Mine Equipment Support</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #0f1217;
+    --bg3: #161b22;
+    --bg4: #1c2330;
+    --border: #2a3340;
+    --border2: #3a4555;
+    --amber: #f0a500;
+    --amber2: #ffbe3a;
+    --amber3: #7a5200;
+    --red: #e05252;
+    --green: #4caf7d;
+    --blue: #4a90d9;
+    --cyan: #3dcfcf;
+    --purple: #9b72cf;
+    --text: #c8d6e5;
+    --text2: #8a9bb0;
+    --text3: #5a6b7e;
+    --white: #eaf0fa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCANLINE overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: .4;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,12,15,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--amber3);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--amber);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    color: #0a0c0f;
+    flex-shrink: 0;
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(240,165,0,0.4); }
+    50% { box-shadow: 0 0 20px rgba(240,165,0,0.8); }
+  }
+
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .logo-main {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--amber);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .header-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--amber);
+    letter-spacing: 2px;
+  }
+
+  .header-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, var(--amber3), var(--amber));
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: #0a0c0f;
+  }
+
+  /* ── HERO BANNER ── */
+  .hero {
+    position: relative;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    padding: 36px 32px;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(240,165,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,165,0,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -60px;
+    left: 20%;
+    width: 400px;
+    height: 200px;
+    background: radial-gradient(ellipse, rgba(240,165,0,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .hero-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 42px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .hero-title span {
+    color: var(--amber);
+  }
+
+  .hero-desc {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 6px;
+    max-width: 500px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    min-height: calc(100vh - 170px);
+  }
+
+  /* ── SIDEBAR LEFT ── */
+  .sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .nav-section-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 14px 20px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all .15s;
+    border-left: 2px solid transparent;
+    font-size: 13px;
+    color: var(--text2);
+    text-decoration: none;
+  }
+
+  .nav-item:hover {
+    background: var(--bg3);
+    color: var(--amber);
+    border-left-color: var(--amber);
+  }
+
+  .nav-item.active {
+    background: var(--bg3);
+    color: var(--amber);
+    border-left-color: var(--amber);
+  }
+
+  .nav-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    width: 18px;
+    text-align: center;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--amber3);
+    color: var(--amber);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+
+  .nav-badge.red {
+    background: rgba(224,82,82,0.2);
+    color: var(--red);
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 28px 28px;
+    overflow-y: auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border2), transparent);
+  }
+
+  .section-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--amber);
+    border: 1px solid var(--amber3);
+    padding: 2px 8px;
+    letter-spacing: 1px;
+  }
+
+  /* ── DASHBOARD CARDS ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .dash-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+  }
+
+  .dash-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-color, var(--amber));
+  }
+
+  .dash-card:hover {
+    border-color: var(--card-color, var(--amber));
+    background: var(--bg4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .card-icon-wrap {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .card-status.live {
+    background: rgba(76,175,125,0.15);
+    color: var(--green);
+    border: 1px solid rgba(76,175,125,0.3);
+  }
+
+  .card-status.draft {
+    background: rgba(240,165,0,0.1);
+    color: var(--amber);
+    border: 1px solid var(--amber3);
+  }
+
+  .card-status.wip {
+    background: rgba(74,144,217,0.1);
+    color: var(--blue);
+    border: 1px solid rgba(74,144,217,0.3);
+  }
+
+  .card-arrow {
+    color: var(--text3);
+    font-size: 16px;
+    transition: transform .2s, color .2s;
+  }
+
+  .dash-card:hover .card-arrow {
+    color: var(--card-color, var(--amber));
+    transform: translateX(4px);
+  }
+
+  /* ── REPORTS TABLE ── */
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 32px;
+  }
+
+  .report-table th {
+    text-align: left;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  .report-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text2);
+    vertical-align: middle;
+  }
+
+  .report-table tr:hover td {
+    background: var(--bg3);
+    color: var(--text);
+  }
+
+  .report-name {
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── SOP GRID ── */
+  .sop-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .sop-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+  }
+
+  .sop-item:hover {
+    border-color: var(--border2);
+    background: var(--bg4);
+  }
+
+  .sop-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    background: rgba(240,165,0,0.08);
+    border: 1px solid var(--amber3);
+    padding: 2px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+
+  .sop-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .sop-desc {
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 1.4;
+  }
+
+  /* ── QUICK LINKS ── */
+  .quick-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .ql-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s;
+  }
+
+  .ql-item:hover {
+    border-color: var(--amber3);
+    background: var(--bg4);
+  }
+
+  .ql-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .ql-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ql-sub {
+    font-size: 9px;
+    color: var(--text3);
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+
+  .right-panel::-webkit-scrollbar { width: 3px; }
+  .right-panel::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  .panel-section {
+    margin-bottom: 28px;
+  }
+
+  .panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── ALERT LIST ── */
+  .alert-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: color .2s;
+  }
+
+  .alert-item:last-child { border-bottom: none; }
+  .alert-item:hover .alert-title { color: var(--amber); }
+
+  .alert-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .alert-dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .alert-dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .alert-dot.blue { background: var(--blue); }
+  .alert-dot.green { background: var(--green); }
+
+  .alert-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+    transition: color .2s;
+  }
+
+  .alert-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MINI CHART ── */
+  .mini-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 50px;
+    padding: 4px 0;
+  }
+
+  .mini-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    transition: all .3s;
+  }
+
+  .mini-bar:hover { filter: brightness(1.3); }
+
+  /* ── PROGRESS ITEMS ── */
+  .prog-item {
+    margin-bottom: 12px;
+  }
+
+  .prog-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+
+  .prog-label {
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .prog-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--amber);
+  }
+
+  .prog-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--amber3), var(--amber));
+    transition: width 1s ease;
+  }
+
+  .prog-fill.green { background: linear-gradient(90deg, #2a6b47, var(--green)); }
+  .prog-fill.red { background: linear-gradient(90deg, #7a2222, var(--red)); }
+  .prog-fill.blue { background: linear-gradient(90deg, #1a3d6e, var(--blue)); }
+
+  /* ── SCHEDULE TABLE ── */
+  .schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .schedule-item:last-child { border-bottom: none; }
+
+  .sched-date {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    width: 65px;
+    flex-shrink: 0;
+  }
+
+  .sched-title {
+    font-size: 11px;
+    color: var(--text2);
+    flex: 1;
+  }
+
+  .sched-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: rgba(240,165,0,0.06);
+    border: 1px solid var(--amber3);
+    border-radius: 3px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .ticker-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--amber);
+    letter-spacing: 2px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--amber3);
+    padding-right: 8px;
+  }
+
+  .ticker-text {
+    font-size: 11px;
+    color: var(--text2);
+    white-space: nowrap;
+    animation: scroll-ticker 25s linear infinite;
+  }
+
+  @keyframes scroll-ticker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-200%); }
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 10px 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .2s;
+  }
+
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* ── TOOL CARDS ── */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .tool-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .tool-card:hover {
+    border-color: var(--border2);
+    background: var(--bg4);
+    transform: translateY(-2px);
+  }
+
+  .tool-emoji { font-size: 26px; margin-bottom: 8px; }
+
+  .tool-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .tool-desc { font-size: 9px; color: var(--text3); }
+
+  /* ── TAB CONTENT ── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── SEARCH BAR ── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 16px;
+    margin-bottom: 24px;
+  }
+
+  .search-bar span { color: var(--text3); font-size: 16px; }
+
+  .search-bar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+  }
+
+  .search-bar input::placeholder { color: var(--text3); }
+
+  /* ── ANIMATIONS ── */
+  .fade-in {
+    animation: fadeIn .5s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .fade-in:nth-child(1) { animation-delay: .0s; }
+  .fade-in:nth-child(2) { animation-delay: .05s; }
+  .fade-in:nth-child(3) { animation-delay: .1s; }
+  .fade-in:nth-child(4) { animation-delay: .15s; }
+  .fade-in:nth-child(5) { animation-delay: .2s; }
+  .fade-in:nth-child(6) { animation-delay: .25s; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 28px 0;
+  }
+
+  /* ── TAG CHIPS ── */
+  .chip {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin-right: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .chip.amber { background: rgba(240,165,0,0.1); color: var(--amber); border: 1px solid var(--amber3); }
+  .chip.green { background: rgba(76,175,125,0.1); color: var(--green); border: 1px solid rgba(76,175,125,0.3); }
+  .chip.blue { background: rgba(74,144,217,0.1); color: var(--blue); border: 1px solid rgba(74,144,217,0.3); }
+  .chip.red { background: rgba(224,82,82,0.1); color: var(--red); border: 1px solid rgba(224,82,82,0.3); }
+  .chip.purple { background: rgba(155,114,207,0.1); color: var(--purple); border: 1px solid rgba(155,114,207,0.3); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 28px;
+    width: 480px;
+    max-width: 90vw;
+    position: relative;
+    animation: slideUp .25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color .2s;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .modal-body {
+    color: var(--text2);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .modal-body ul {
+    padding-left: 16px;
+    margin-top: 8px;
+  }
+
+  .modal-body li { margin-bottom: 4px; }
+
+  /* Responsive note */
+  @media (max-width: 1024px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar, .right-panel { display: none; }
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    .tool-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">MES</div>
+    <div class="logo-text">
+      <div class="logo-main">MES Portal</div>
+      <div class="logo-sub">Mine Equipment Support — PT CDE & PT CES</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      SYSTEM ONLINE
+    </div>
+    <div class="header-time" id="clock">--:--:--</div>
+    <div class="header-user">
+      <div class="avatar">AM</div>
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:11px;">Adya Malik</div>
+        <div style="font-size:9px;color:var(--amber);">Supervisor — CM</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-title">MINE <span>EQUIPMENT</span> SUPPORT</div>
+      <div class="hero-desc">Portal terpadu Mine Equipment Support.</div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div style="text-align:center;background:var(--bg3);border:1px solid var(--border);padding:14px 20px;border-radius:4px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--amber);line-height:1;">W<span id="week-num">--</span></div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;">MINGGU INI</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border:1px solid var(--border);padding:14px 20px;border-radius:4px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--green);line-height:1;" id="today-date">--</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;">HARI INI</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- MAIN GRID -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section-title">// NAVIGASI</div>
+    <a class="nav-item active" href="#dashboard" onclick="setActive(this)">
+      <span class="nav-icon">📊</span> Dashboard Utama
+    </a>
+    <a class="nav-item" href="#monitoring" onclick="setActive(this)">
+      <span class="nav-icon">🔍</span> Condition Monitoring
+      <span class="nav-badge red">3</span>
+    </a>
+    <a class="nav-item" href="#pm" onclick="setActive(this)">
+      <span class="nav-icon">🔧</span> PM Tracking
+    </a>
+    <a class="nav-item" href="#reports" onclick="setActive(this)">
+      <span class="nav-icon">📋</span> Reports
+    </a>
+    <a class="nav-item" href="#component" onclick="setActive(this)">
+      <span class="nav-icon">⚙️</span> Component Status
+    </a>
+    <a class="nav-item" href="#payload" onclick="setActive(this)">
+      <span class="nav-icon">🚛</span> Payload & Fuel
+    </a>
+
+    <div class="nav-section-title">// REFERENSI</div>
+    <a class="nav-item" href="#sop" onclick="setActive(this)">
+      <span class="nav-icon">📖</span> SOP & Prosedur
+    </a>
+    <a class="nav-item" href="#manuals" onclick="setActive(this)">
+      <span class="nav-icon">📕</span> Manual Teknis
+    </a>
+    <a class="nav-item" href="#sos-ref" onclick="setActive(this)">
+      <span class="nav-icon">🧪</span> Referensi SOS
+    </a>
+    <a class="nav-item" href="#smcs" onclick="setActive(this)">
+      <span class="nav-icon">🔢</span> SMCS Code
+    </a>
+
+    <div class="nav-section-title">// TOOLS</div>
+    <a class="nav-item" href="#calculator" onclick="setActive(this)">
+      <span class="nav-icon">🧮</span> Kalkulator CM
+    </a>
+    <a class="nav-item" href="#tools" onclick="setActive(this)">
+      <span class="nav-icon">🛠️</span> Tools & Utilities
+    </a>
+    <a class="nav-item" href="#links" onclick="setActive(this)">
+      <span class="nav-icon">🔗</span> Quick Links
+    </a>
+
+    <div class="nav-section-title">// LAINNYA</div>
+    <a class="nav-item" href="#warranty" onclick="setActive(this)">
+      <span class="nav-icon">🛡️</span> Warranty Tracker
+    </a>
+    <a class="nav-item" href="#training" onclick="setActive(this)">
+      <span class="nav-icon">🎓</span> Training & Sertifikasi
+    </a>
+    <a class="nav-item" href="#contact" onclick="setActive(this)">
+      <span class="nav-icon">👤</span> Tim MES
+    </a>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- SEARCH -->
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" placeholder="Cari dokumen, SOP, unit, komponen...">
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'tab-dash')">Dashboard</div>
+      <div class="tab" onclick="switchTab(this,'tab-ref')">Referensi</div>
+      <div class="tab" onclick="switchTab(this,'tab-sop')">SOP & Prosedur</div>
+      <div class="tab" onclick="switchTab(this,'tab-tools')">Tools</div>
+    </div>
+
+    <!-- TAB: DASHBOARD -->
+    <div class="tab-content active" id="tab-dash">
+
+      <!-- Section: Dashboard Links -->
+      <div class="section-header">
+        <div class="section-title">📊 Dashboard Monitoring</div>
+        <div class="section-line"></div>
+        <div class="section-tag">LOOKER STUDIO</div>
+      </div>
+      <div class="cards-grid">
+        <a class="dash-card fade-in" href="#" style="--card-color: var(--amber);" onclick="return false;">
+          <div class="card-icon-wrap">📊</div>
+          <div class="card-title">Condition Monitoring</div>
+          <div class="card-desc">Dashboard utama CM — SOS Rating, Inspection Rating, Electronic Alert, Site Condition, Repair History.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+        <a class="dash-card fade-in" href="#" style="--card-color: var(--green);" onclick="return false;">
+          <div class="card-icon-wrap">🔧</div>
+          <div class="card-title">PM Tracking</div>
+          <div class="card-desc">Tracking PM harian — SOS & Action Taken, status PM per unit, compliance rate, dan backlog.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+        <a class="dash-card fade-in" href="#" style="--card-color: var(--blue);" onclick="return false;">
+          <div class="card-icon-wrap">⚙️</div>
+          <div class="card-title">Component Routable</div>
+          <div class="card-desc">Status komponen routable — prediksi penggantian, sisa life, ETA per unit fleet.</div>
+          <div class="card-footer">
+            <span class="card-status draft">◑ DRAFT</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+        <a class="dash-card fade-in" href="#" style="--card-color: var(--red);" onclick="return false;">
+          <div class="card-icon-wrap">🏋️</div>
+          <div class="card-title">Payload Report</div>
+          <div class="card-desc">Analisa payload OHT — rata-rata kecepatan, overload %, distribusi muatan per shift dan unit.</div>
+          <div class="card-footer">
+            <span class="card-status draft">◑ DRAFT</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+        <a class="dash-card fade-in" href="#" style="--card-color: var(--purple);" onclick="return false;">
+          <div class="card-icon-wrap">⛽</div>
+          <div class="card-title">Fuel Burn Report</div>
+          <div class="card-desc">Konsumsi bahan bakar per unit — liter/jam, efisiensi, deviasi dari baseline, top-up history.</div>
+          <div class="card-footer">
+            <span class="card-status draft">◑ DRAFT</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+        <a class="dash-card fade-in" href="#" style="--card-color: var(--cyan);" onclick="return false;">
+          <div class="card-icon-wrap">📈</div>
+          <div class="card-title">Equipment Health</div>
+          <div class="card-desc">Skor kesehatan alat berdasarkan 5 elemen CM — scoring, tren, dan rekomendasi tindakan.</div>
+          <div class="card-footer">
+            <span class="card-status wip">◔ WIP</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Section: Reports -->
+      <div class="section-header" id="reports">
+        <div class="section-title">📋 Laporan Operasional</div>
+        <div class="section-line"></div>
+        <div class="section-tag">WEEKLY / MONTHLY</div>
+      </div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Nama Laporan</th>
+            <th>Periode</th>
+            <th>Status</th>
+            <th>PIC</th>
+            <th>Kategori</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="report-name">📋 Inspection & Backlog Report</div></td>
+            <td>Weekly</td>
+            <td><span class="chip green">AKTIF</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip amber">CM</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">❤️ Equipment Health Report</div></td>
+            <td>Monthly</td>
+            <td><span class="chip amber">DRAFT</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip amber">CM</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">⚙️ Component Routable Status</div></td>
+            <td>Monthly</td>
+            <td><span class="chip amber">DRAFT</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip blue">COMP</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">🚀 Project Improvement Progress</div></td>
+            <td>Monthly</td>
+            <td><span class="chip green">AKTIF</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip purple">PROJ</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">🏋️ Payload Report</div></td>
+            <td>Weekly</td>
+            <td><span class="chip amber">DRAFT</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip red">OPR</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">⛽ Fuel Burn Report</div></td>
+            <td>Weekly</td>
+            <td><span class="chip amber">DRAFT</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip red">OPR</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">🧪 SOS Follow-up Report</div></td>
+            <td>Weekly</td>
+            <td><span class="chip green">AKTIF</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip amber">CM</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">🛡️ Warranty Progress Report</div></td>
+            <td>Monthly</td>
+            <td><span class="chip green">AKTIF</span></td>
+            <td>Adya Malik</td>
+            <td><span class="chip green">WARRANTY</span></td>
+            <td style="cursor:pointer;color:var(--amber);">Buka →</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Section: KPI Monitoring -->
+      <div class="section-header">
+        <div class="section-title">🎯 Dataset & KPI Pendukung</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="dash-card fade-in" style="--card-color: var(--blue);" onclick="showModal('kpi-speed')">
+          <div class="card-icon-wrap">🚛</div>
+          <div class="card-title">Kecepatan OHT</div>
+          <div class="card-desc">Rata-rata kecepatan OHT per unit — traveling speed, haul road condition score.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+        <div class="dash-card fade-in" style="--card-color: var(--green);" onclick="showModal('kpi-exc')">
+          <div class="card-icon-wrap">🏗️</div>
+          <div class="card-title">Travel Excavator</div>
+          <div class="card-desc">Persentase travel Excavator terhadap total working hours — breakdown per unit dan lokasi.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+        <div class="dash-card fade-in" style="--card-color: var(--amber);" onclick="showModal('kpi-oil')">
+          <div class="card-icon-wrap">🛢️</div>
+          <div class="card-title">Top-Up Oil & Coolant</div>
+          <div class="card-desc">Record penambahan oli engine, oli transmisi, coolant — per unit, per shift, tren mingguan.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+        <div class="dash-card fade-in" style="--card-color: var(--red);" onclick="showModal('kpi-cts')">
+          <div class="card-icon-wrap">📊</div>
+          <div class="card-title">CTS UC & Analisa GET</div>
+          <div class="card-desc">Report CTS Undercarriage — wear rate, analisa GET (Ground Engaging Tools) per unit.</div>
+          <div class="card-footer">
+            <span class="card-status draft">◑ DRAFT</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+        <div class="dash-card fade-in" style="--card-color: var(--purple);" onclick="showModal('kpi-pla')">
+          <div class="card-icon-wrap">⚡</div>
+          <div class="card-title">SOS & PL Alert</div>
+          <div class="card-desc">Follow-up SOS dan PL Alert — status tindak lanjut, aging, unit prioritas, trending.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+        <div class="dash-card fade-in" style="--card-color: var(--cyan);" onclick="showModal('kpi-major')">
+          <div class="card-icon-wrap">🚨</div>
+          <div class="card-title">Major Failure Isu</div>
+          <div class="card-desc">Log dan analisis major failure — root cause, downtime impact, corrective action tracking.</div>
+          <div class="card-footer">
+            <span class="card-status live">● LIVE</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-dash -->
+
+    <!-- TAB: REFERENSI -->
+    <div class="tab-content" id="tab-ref">
+      <div class="section-header">
+        <div class="section-title">📕 Manual & Referensi Teknis</div>
+        <div class="section-line"></div>
+        <div class="section-tag">CAT / KOMATSU</div>
+      </div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Dokumen</th>
+            <th>Unit/Model</th>
+            <th>Tipe</th>
+            <th>Versi</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="report-name">📕 Operation & Maintenance Manual</div></td>
+            <td>HD785-7 Komatsu</td>
+            <td><span class="chip blue">OMM</span></td>
+            <td>Rev.3</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">📗 Shop Manual</div></td>
+            <td>HD785-7 Komatsu</td>
+            <td><span class="chip green">SHOP</span></td>
+            <td>Rev.2</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">📘 Parts Book</div></td>
+            <td>HD785-7 Komatsu</td>
+            <td><span class="chip amber">PARTS</span></td>
+            <td>Rev.4</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">📕 OMM — PC2000-8</div></td>
+            <td>PC2000-8 Komatsu</td>
+            <td><span class="chip blue">OMM</span></td>
+            <td>Rev.1</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">📗 Troubleshooting Guide</div></td>
+            <td>General</td>
+            <td><span class="chip red">TROUBLE</span></td>
+            <td>2024</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">🧪 Fluid Recommendation Guide</div></td>
+            <td>Komatsu General</td>
+            <td><span class="chip purple">SOS</span></td>
+            <td>2023</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+          <tr>
+            <td><div class="report-name">📊 Undercarriage Wear Guide</div></td>
+            <td>Excavator Series</td>
+            <td><span class="chip amber">CTS</span></td>
+            <td>2022</td>
+            <td style="cursor:pointer;color:var(--amber);">⬇ Unduh</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+
+      <div class="section-header" id="smcs">
+        <div class="section-title">🔢 SMCS Code Reference</div>
+        <div class="section-line"></div>
+        <div class="section-tag">PARSING GUIDE</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:16px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--amber);margin-bottom:8px;letter-spacing:1px;">FORMAT SMCS</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--cyan);margin-bottom:6px;">XXXX-YYY-Z</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.7;">
+            <b style="color:var(--text);">XXXX</b> = 4 digit SMCS Code<br>
+            <b style="color:var(--text);">YYY</b> = 3 digit Job Code<br>
+            <b style="color:var(--text);">Z</b> = Modifier (huruf)
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:16px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--amber);margin-bottom:8px;letter-spacing:1px;">CONTOH PARSING</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);margin-bottom:6px;">1250-045-L</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.7;">
+            SMCS: <b style="color:var(--text);">1250</b> (Engine)<br>
+            Job Code: <b style="color:var(--text);">045</b><br>
+            Modifier: <b style="color:var(--text);">L</b> (Left)
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:16px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--amber);margin-bottom:8px;letter-spacing:1px;">ATURAN PARSING</div>
+          <div style="font-size:10px;color:var(--text2);line-height:1.7;">
+            Job Desk: <b style="color:var(--text);">tanpa arah</b> (no LEFT/RIGHT)<br>
+            Replacement %: <b style="color:var(--text);">&gt; 0%</b> only<br>
+            Source: <b style="color:var(--text);">14 kolom standar</b>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-ref -->
+
+    <!-- TAB: SOP -->
+    <div class="tab-content" id="tab-sop">
+      <div class="section-header" id="sop">
+        <div class="section-title">📖 SOP & Prosedur</div>
+        <div class="section-line"></div>
+        <div class="section-tag">STANDAR PT CDE</div>
+      </div>
+
+      <div class="sop-grid">
+        <div class="sop-item" onclick="showModal('sop-ins')">
+          <div class="sop-num">SOP-MES-01</div>
+          <div>
+            <div class="sop-title">Prosedur Inspeksi Harian Unit</div>
+            <div class="sop-desc">Langkah-langkah pelaksanaan inspeksi harian — pre-shift, post-shift, defect reporting, dan dokumentasi.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-pm')">
+          <div class="sop-num">SOP-MES-02</div>
+          <div>
+            <div class="sop-title">Prosedur Preventive Maintenance (PM)</div>
+            <div class="sop-desc">Alur pelaksanaan PM terjadwal — WO generation, persiapan material, execution, dan sign-off.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-sos')">
+          <div class="sop-num">SOP-MES-03</div>
+          <div>
+            <div class="sop-title">Prosedur Pengambilan Sampel SOS</div>
+            <div class="sop-desc">Teknik pengambilan sampel oli/coolant — waktu optimal, kontainer, label, dan pengiriman sampel ke lab.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-wo')">
+          <div class="sop-num">SOP-MES-04</div>
+          <div>
+            <div class="sop-title">Alur Order Spare Part (MES)</div>
+            <div class="sop-desc">WO → cek stok → PR/CP → sourcing &amp; bidding → approval PO → penerimaan → supply → GR → close WO.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-bd')">
+          <div class="sop-num">SOP-MES-05</div>
+          <div>
+            <div class="sop-title">Prosedur Breakdown Handling</div>
+            <div class="sop-desc">Alur penanganan breakdown — rapid response, initial diagnosis, isolasi unit, dan eskalasi ke tim teknis.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-comp')">
+          <div class="sop-num">SOP-MES-06</div>
+          <div>
+            <div class="sop-title">Manajemen Komponen Routable</div>
+            <div class="sop-desc">Proses tracking life komponen routable — registration, monitoring jam, prediksi penggantian, dan rebuild.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-fuel')">
+          <div class="sop-num">SOP-MES-07</div>
+          <div>
+            <div class="sop-title">Prosedur Fueling & Fuel Management</div>
+            <div class="sop-desc">Prosedur pengisian bahan bakar unit — recording, cross-check dengan fuel meter, dan laporan konsumsi.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-warrant')">
+          <div class="sop-num">SOP-MES-08</div>
+          <div>
+            <div class="sop-title">Prosedur Klaim Warranty</div>
+            <div class="sop-desc">Identifikasi komponen dalam masa warranty — proses klaim, dokumentasi, follow-up vendor, dan pelaporan.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-cm')">
+          <div class="sop-num">SOP-MES-09</div>
+          <div>
+            <div class="sop-title">Prosedur Condition Monitoring 5 Elemen</div>
+            <div class="sop-desc">Penilaian CM berdasarkan 5 elemen: SOS Rating, Inspection Rating, Site Condition, Electronic Data, Repair History.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-mf')">
+          <div class="sop-num">SOP-MES-10</div>
+          <div>
+            <div class="sop-title">Investigasi Major Failure</div>
+            <div class="sop-desc">Langkah investigasi kegagalan besar — root cause analysis, 5-why, dokumentasi, dan laporan RCFA.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-uc')">
+          <div class="sop-num">SOP-MES-11</div>
+          <div>
+            <div class="sop-title">Inspeksi & Pengukuran Undercarriage</div>
+            <div class="sop-desc">Metode pengukuran CTS UC — track sag, bushing wear, sprocket wear, dan rekomendasi tindakan.</div>
+          </div>
+        </div>
+        <div class="sop-item" onclick="showModal('sop-get')">
+          <div class="sop-num">SOP-MES-12</div>
+          <div>
+            <div class="sop-title">Analisa & Penggantian GET</div>
+            <div class="sop-desc">Prosedur analisa Ground Engaging Tools — wear index, penentuan waktu ganti, dan type selection.</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-sop -->
+
+    <!-- TAB: TOOLS -->
+    <div class="tab-content" id="tab-tools">
+      <div class="section-header" id="calculator">
+        <div class="section-title">🧮 Tools & Kalkulator</div>
+        <div class="section-line"></div>
+        <div class="section-tag">UTILITIES</div>
+      </div>
+
+      <div class="tool-grid">
+        <div class="tool-card" onclick="showModal('tool-comp')">
+          <div class="tool-emoji">⚙️</div>
+          <div class="tool-name">Component Life Calc</div>
+          <div class="tool-desc">Hitung prediksi penggantian komponen berdasarkan current hours & target life</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-avail')">
+          <div class="tool-emoji">📊</div>
+          <div class="tool-name">Availability Calc</div>
+          <div class="tool-desc">Hitung Physical Availability dan Use of Availability fleet</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-sos')">
+          <div class="tool-emoji">🧪</div>
+          <div class="tool-name">SOS Rating Guide</div>
+          <div class="tool-desc">Panduan interpretasi hasil SOS — nilai batas, warna kode, dan rekomendasi tindakan</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-fuel')">
+          <div class="tool-emoji">⛽</div>
+          <div class="tool-name">Fuel Ratio Calc</div>
+          <div class="tool-desc">Kalkulasi konsumsi spesifik bahan bakar (liter/jam vs target)</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-payload')">
+          <div class="tool-emoji">🚛</div>
+          <div class="tool-name">Payload Deviation</div>
+          <div class="tool-desc">Analisis deviasi payload OHT terhadap nominal kapasitas</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-pm')">
+          <div class="tool-emoji">📅</div>
+          <div class="tool-name">PM Schedule Gen</div>
+          <div class="tool-desc">Generate jadwal PM berdasarkan interval jam & HM saat ini</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-week')">
+          <div class="tool-emoji">📆</div>
+          <div class="tool-name">Week Calculator</div>
+          <div class="tool-desc">Cek nomor minggu berjalan (Sabtu–Jumat) dan range tanggal</div>
+        </div>
+        <div class="tool-card" onclick="showModal('tool-smcs')">
+          <div class="tool-emoji">🔢</div>
+          <div class="tool-name">SMCS Parser</div>
+          <div class="tool-desc">Parse kode SMCS menjadi Job Code, Modifier, dan Job Description</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-header" id="links">
+        <div class="section-title">🔗 Quick Links</div>
+        <div class="section-line"></div>
+        <div class="section-tag">EXTERNAL & INTERNAL</div>
+      </div>
+      <div class="quick-links">
+        <a class="ql-item" href="https://lookerstudio.google.com" target="_blank">
+          <div class="ql-icon">📊</div>
+          <div>
+            <div class="ql-label">Looker Studio</div>
+            <div class="ql-sub">Google Data Studio</div>
+          </div>
+        </a>
+        <a class="ql-item" href="https://sheets.google.com" target="_blank">
+          <div class="ql-icon">📋</div>
+          <div>
+            <div class="ql-label">Google Sheets</div>
+            <div class="ql-sub">Data Source MES</div>
+          </div>
+        </a>
+        <a class="ql-item" href="https://drive.google.com" target="_blank">
+          <div class="ql-icon">💾</div>
+          <div>
+            <div class="ql-label">Google Drive</div>
+            <div class="ql-sub">Dokumen & Laporan</div>
+          </div>
+        </a>
+        <a class="ql-item" href="#" onclick="return false;">
+          <div class="ql-icon">🏭</div>
+          <div>
+            <div class="ql-label">KOMTRAX / VHMS</div>
+            <div class="ql-sub">Electronic Monitoring</div>
+          </div>
+        </a>
+        <a class="ql-item" href="https://medias.komatsu" target="_blank">
+          <div class="ql-icon">📕</div>
+          <div>
+            <div class="ql-label">Komatsu Medias</div>
+            <div class="ql-sub">Parts & Service Info</div>
+          </div>
+        </a>
+        <a class="ql-item" href="#" onclick="return false;">
+          <div class="ql-icon">🌐</div>
+          <div>
+            <div class="ql-label">Cat SIS / ET</div>
+            <div class="ql-sub">Caterpillar Service Info</div>
+          </div>
+        </a>
+        <a class="ql-item" href="#" onclick="return false;">
+          <div class="ql-icon">🧪</div>
+          <div>
+            <div class="ql-label">MSSOS Portal</div>
+            <div class="ql-sub">SOS Result & Analysis</div>
+          </div>
+        </a>
+        <a class="ql-item" href="#" onclick="return false;">
+          <div class="ql-icon">📧</div>
+          <div>
+            <div class="ql-label">Email PT CDE</div>
+            <div class="ql-sub">Internal Communication</div>
+          </div>
+        </a>
+        <a class="ql-item" href="https://www.freelancer.com/u/adyamalik2" target="_blank">
+          <div class="ql-icon">💼</div>
+          <div>
+            <div class="ql-label">Freelancer.com</div>
+            <div class="ql-sub">@adyamalik2</div>
+          </div>
+        </a>
+      </div>
+
+    </div><!-- /tab-tools -->
+
+  </div><!-- /content -->
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- ALERT PANEL -->
+    <div class="panel-section">
+      <div class="panel-title">// OPEN ALERTS</div>
+      <div class="alert-item">
+        <div class="alert-dot red"></div>
+        <div>
+          <div class="alert-title">SOS Critical — HD785-018</div>
+          <div class="alert-meta">Engine Oil · Fe 68ppm · W25</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot red"></div>
+        <div>
+          <div class="alert-title">SOS Critical — PC2000-003</div>
+          <div class="alert-meta">Hydraulic Oil · Si 42ppm · W25</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot amber"></div>
+        <div>
+          <div class="alert-title">PL Alert — HD785-022</div>
+          <div class="alert-meta">Overload 112% · Shift Malam</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot amber"></div>
+        <div>
+          <div class="alert-title">Top-Up Oil Tinggi — HD785-011</div>
+          <div class="alert-meta">+18L Engine Oil · 3x berturut</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot blue"></div>
+        <div>
+          <div class="alert-title">VHMS Alert — HD785-019</div>
+          <div class="alert-meta">Trans Temp High · Monitor</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot amber"></div>
+        <div>
+          <div class="alert-title">PM Overdue — HD785-031</div>
+          <div class="alert-meta">250HR PM · +42 jam terlewat</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS KPI -->
+    <div class="panel-section">
+      <div class="panel-title">// PM COMPLIANCE W26</div>
+      <div class="prog-item">
+        <div class="prog-header"><span class="prog-label">OHT HD785</span><span class="prog-val">15/18</span></div>
+        <div class="prog-track"><div class="prog-fill green" style="width:83%"></div></div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header"><span class="prog-label">Excavator PC2000</span><span class="prog-val">5/5</span></div>
+        <div class="prog-track"><div class="prog-fill green" style="width:100%"></div></div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header"><span class="prog-label">Support Unit</span><span class="prog-val">3/4</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:75%"></div></div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-header"><span class="prog-label">Warranty PM</span><span class="prog-val">2/2</span></div>
+        <div class="prog-track"><div class="prog-fill green" style="width:100%"></div></div>
+      </div>
+    </div>
+
+    <!-- MINI CHART -->
+    <div class="panel-section">
+      <div class="panel-title">// SOS TREND (6 MINGGU)</div>
+      <div class="mini-bars" id="mini-bars">
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text3);">W21</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text3);">W22</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text3);">W23</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text3);">W24</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text3);">W25</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--amber);">W26</span>
+      </div>
+    </div>
+
+    <!-- UPCOMING SCHEDULE -->
+    <div class="panel-section">
+      <div class="panel-title">// UPCOMING SCHEDULE</div>
+      <div class="schedule-item">
+        <div class="sched-date">Sab 28 Jun</div>
+        <div class="sched-title">PM 250HR HD785-018</div>
+        <span class="sched-badge" style="background:rgba(240,165,0,0.1);color:var(--amber);border:1px solid var(--amber3);">PM</span>
+      </div>
+      <div class="schedule-item">
+        <div class="sched-date">Sen 30 Jun</div>
+        <div class="sched-title">Inspection Final Drive HD785-019</div>
+        <span class="sched-badge" style="background:rgba(74,144,217,0.1);color:var(--blue);border:1px solid rgba(74,144,217,0.3);">COMP</span>
+      </div>
+      <div class="schedule-item">
+        <div class="sched-date">Sel 1 Jul</div>
+        <div class="sched-title">SOS Sampling All Unit Shift 1</div>
+        <span class="sched-badge" style="background:rgba(155,114,207,0.1);color:var(--purple);border:1px solid rgba(155,114,207,0.3);">SOS</span>
+      </div>
+      <div class="schedule-item">
+        <div class="sched-date">Kam 3 Jul</div>
+        <div class="sched-title">Monthly Report Equipment Health</div>
+        <span class="sched-badge" style="background:rgba(224,82,82,0.1);color:var(--red);border:1px solid rgba(224,82,82,0.3);">LAPORAN</span>
+      </div>
+      <div class="schedule-item">
+        <div class="sched-date">Jum 4 Jul</div>
+        <div class="sched-title">Warranty Report Deadline</div>
+        <span class="sched-badge" style="background:rgba(76,175,125,0.1);color:var(--green);border:1px solid rgba(76,175,125,0.3);">WARRANTY</span>
+      </div>
+    </div>
+
+    <!-- 5 ELEMEN CM -->
+    <div class="panel-section">
+      <div class="panel-title">// 5 ELEMEN CM STATUS</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;">
+          <span style="font-size:11px;">🧪 SOS Rating</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;background:rgba(224,82,82,0.15);color:var(--red);border-radius:2px;">3 ALERT</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;">
+          <span style="font-size:11px;">🔍 Inspection Rating</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;background:rgba(240,165,0,0.1);color:var(--amber);border-radius:2px;">2 DEFECT</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;">
+          <span style="font-size:11px;">🏔️ Site Condition</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;background:rgba(76,175,125,0.1);color:var(--green);border-radius:2px;">NORMAL</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;">
+          <span style="font-size:11px;">⚡ Electronic Data</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;background:rgba(74,144,217,0.1);color:var(--blue);border-radius:2px;">1 VHMS</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;">
+          <span style="font-size:11px;">🔧 Repair History</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;background:rgba(76,175,125,0.1);color:var(--green);border-radius:2px;">UPDATED</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /right-panel -->
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>MES PORTAL v1.0 — PT CAKRAWALA DINAMIKA ENERGI</div>
+  <div>SUPERVISOR: ADYA MALIK · EQUIPMENT MANAGEMENT — CONDITION MONITORING</div>
+  <div id="footer-date">--</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  // ── CLOCK
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    const days = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    document.getElementById('today-date').textContent = `${days[now.getDay()]} ${now.getDate()}`;
+    document.getElementById('footer-date').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── WEEK NUMBER (Sabtu–Jumat)
+  function getWeekNumber(d) {
+    const day = d.getDay(); // 0=Sun, 6=Sat
+    // Adjust so week starts on Saturday
+    const adjusted = new Date(d);
+    const offset = (day + 1) % 7; // 0 on Sat, 1 on Sun, etc.
+    adjusted.setDate(d.getDate() - offset);
+    const startOfYear = new Date(adjusted.getFullYear(), 0, 1);
+    const startDay = startOfYear.getDay();
+    const startOffset = (startDay + 1) % 7;
+    const startAdjusted = new Date(startOfYear);
+    startAdjusted.setDate(startOfYear.getDate() - startOffset);
+    const weekNum = Math.ceil((adjusted - startAdjusted) / (7 * 24 * 60 * 60 * 1000));
+    return weekNum;
+  }
+  document.getElementById('week-num').textContent = getWeekNumber(new Date());
+
+  // ── NAV ACTIVE
+  function setActive(el) {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ── TABS
+  function switchTab(el, tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  // ── MINI BARS
+  const barData = [
+    {val: 5, color: 'var(--green)'},
+    {val: 7, color: 'var(--green)'},
+    {val: 4, color: 'var(--green)'},
+    {val: 9, color: 'var(--amber)'},
+    {val: 11, color: 'var(--red)'},
+    {val: 8, color: 'var(--amber)'}
+  ];
+  const container = document.getElementById('mini-bars');
+  const maxVal = Math.max(...barData.map(b => b.val));
+  barData.forEach(b => {
+    const bar = document.createElement('div');
+    bar.className = 'mini-bar';
+    bar.style.height = `${(b.val / maxVal) * 100}%`;
+    bar.style.background = b.color;
+    bar.title = `${b.val} alerts`;
+    container.appendChild(bar);
+  });
+
+  // ── MODAL DATA
+  const modalData = {
+    'kpi-avail': {
+      title: 'Fleet Availability 87.4%',
+      body: `<p>Physical Availability (PA) fleet minggu ini mencapai <b style="color:var(--green)">87.4%</b>, naik 1.2% dari minggu lalu.</p>
+      <ul>
+        <li>Total unit fleet: 25 unit</li>
+        <li>Unit available: 21.85 unit rata-rata</li>
+        <li>Downtime paling banyak: HD785-018 (Engine issue)</li>
+        <li>Target PA: 85% — <span style="color:var(--green)">TERCAPAI ✓</span></li>
+      </ul>`
+    },
+    'kpi-pm': {
+      title: 'PM Compliance 92%',
+      body: `<p>Tingkat kepatuhan PM minggu ini: <b style="color:var(--amber)">92%</b> (23 dari 25 unit).</p>
+      <ul>
+        <li>2 unit masih pending: HD785-031 (overdue), HD785-027 (part belum tersedia)</li>
+        <li>Target PM Compliance: 95%</li>
+        <li>Action: Eskalasi ke pengadaan untuk part HD785-027</li>
+      </ul>`
+    },
+    'kpi-sos': {
+      title: 'SOS Open Alert: 8 Item',
+      body: `<p>Total <b style="color:var(--red)">8 SOS alert</b> yang belum closed minggu ini.</p>
+      <ul>
+        <li><b style="color:var(--red)">Critical (3):</b> HD785-018 (Fe↑), PC2000-003 (Si↑), HD785-022 (Pb↑)</li>
+        <li><b style="color:var(--amber)">Warning (5):</b> 5 unit dengan nilai mendekati batas</li>
+        <li>Action: Sampling ulang & analisa segera untuk critical units</li>
+      </ul>`
+    },
+    'kpi-backlog': {
+      title: 'Backlog Work Order: 14 WO',
+      body: `<p>Total backlog WO saat ini: <b style="color:var(--blue)">14 WO aktif</b>.</p>
+      <ul>
+        <li><b style="color:var(--red)">Overdue (4):</b> Sudah melewati due date — perlu tindakan segera</li>
+        <li><b style="color:var(--blue)">In Progress (10):</b> Masih dalam pengerjaan atau menunggu part</li>
+        <li>WO terlama: WO#2847 sudah 18 hari berjalan</li>
+      </ul>`
+    },
+    'kpi-comp': {
+      title: 'Component Due ≤30 Hari: 6 Item',
+      body: `<p>Terdapat <b style="color:var(--amber)">6 komponen routable</b> yang akan jatuh tempo dalam 30 hari ke depan.</p>
+      <ul>
+        <li>Final Drive HD785-018 — 12 hari lagi</li>
+        <li>Transmission HD785-022 — 18 hari lagi</li>
+        <li>Turbocharger PC2000-003 — 21 hari lagi</li>
+        <li>+ 3 komponen lainnya</li>
+      </ul>
+      <p style="margin-top:8px;color:var(--text3);font-size:11px;">Segera lakukan koordinasi dengan tim pengadaan dan planning.</p>`
+    },
+    'sop-ins': {
+      title: 'SOP-MES-01: Inspeksi Harian',
+      body: `<b>Tujuan:</b> Memastikan seluruh unit diinspeksi setiap shift untuk mendeteksi defect sedini mungkin.<br><br>
+      <b>Langkah-langkah:</b>
+      <ul>
+        <li><b>Pre-Shift:</b> Walk-around inspection, cek level oli/air/fuel, lampu, ban, dan sistem rem</li>
+        <li><b>Saat Operasi:</b> Monitor parameter dashboard — temp, pressure, warning light</li>
+        <li><b>Post-Shift:</b> Catat defect, bersihkan unit, laporkan ke Form P2H</li>
+        <li><b>Dokumentasi:</b> Input ke sistem CMMS / Google Sheet tracking</li>
+      </ul>`
+    },
+    'sop-cm': {
+      title: 'SOP-MES-09: Condition Monitoring 5 Elemen',
+      body: `<b>5 Elemen CM PT CDE:</b>
+      <ul>
+        <li>🧪 <b>SOS Rating:</b> Analisa hasil oli — Fe, Si, Cu, Pb, Cr vs batas kritis</li>
+        <li>🔍 <b>Inspection Rating:</b> Skor inspeksi fisik unit secara berkala</li>
+        <li>🏔️ <b>Site Condition:</b> Kondisi jalan tambang, dust level, operasi ekstrim</li>
+        <li>⚡ <b>Electronic Data:</b> Alert dari VHMS/KOMTRAX, fault code</li>
+        <li>🔧 <b>Repair History:</b> Riwayat perbaikan — frekuensi, komponen berulang</li>
+      </ul>
+      <p style="margin-top:8px;color:var(--text3);font-size:11px;">Scoring dilakukan setiap bulan untuk menghasilkan Equipment Health Score per unit.</p>`
+    },
+    'sop-wo': {
+      title: 'SOP-MES-04: Alur Order Spare Part',
+      body: `<b>Alur Standar MES:</b>
+      <ul>
+        <li>1️⃣ WO dibuat dari <b>Breakdown</b> atau <b>Inspection Result</b></li>
+        <li>2️⃣ Cek stok di warehouse — tersedia atau tidak?</li>
+        <li>3️⃣ Jika tidak ada: buat <b>PR (Purchase Request)</b> atau <b>CP (Call-off PO)</b></li>
+        <li>4️⃣ Proses <b>Sourcing & Bidding</b> oleh tim pengadaan</li>
+        <li>5️⃣ <b>Approval PO</b> sesuai otorisasi</li>
+        <li>6️⃣ <b>Penerimaan Material</b> di gudang</li>
+        <li>7️⃣ <b>Supply ke Mekanik</b> sesuai WO</li>
+        <li>8️⃣ <b>GR (Goods Receipt)</b> dan close WO</li>
+      </ul>`
+    },
+    'tool-comp': {
+      title: '⚙️ Component Life Calculator',
+      body: `<p>Kalkulator ini membantu memprediksi kapan komponen perlu diganti.</p>
+      <br>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:4px;">Current Hours (HM)</label>
+          <input id="calc-curr" type="number" style="width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:3px;font-family:'Barlow',sans-serif;" placeholder="Contoh: 8450">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:4px;">Target Life Hours</label>
+          <input id="calc-life" type="number" style="width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:3px;font-family:'Barlow',sans-serif;" placeholder="Contoh: 12000">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:4px;">Rata-rata pemakaian (jam/hari)</label>
+          <input id="calc-daily" type="number" style="width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:3px;font-family:'Barlow',sans-serif;" placeholder="Contoh: 20">
+        </div>
+        <button onclick="calcComp()" style="background:var(--amber);color:#0a0c0f;border:none;padding:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;cursor:pointer;border-radius:3px;">HITUNG</button>
+        <div id="calc-result" style="background:var(--bg3);border:1px solid var(--border);padding:12px;border-radius:3px;font-size:12px;color:var(--text2);display:none;"></div>
+      </div>`
+    },
+    'tool-week': {
+      title: '📆 Week Calculator (Sabtu–Jumat)',
+      body: `<p style="font-size:11px;color:var(--text2);">Sistem minggu MES menggunakan periode <b>Sabtu s.d. Jumat</b>.</p><br>
+      <div style="background:var(--bg3);border:1px solid var(--amber3);border-radius:4px;padding:16px;text-align:center;">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:1px;">MINGGU BERJALAN</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:800;color:var(--amber);line-height:1;">W${getWeekNumber(new Date())}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px;" id="week-range-modal"></div>
+      </div>
+      <script>
+        (function(){
+          const now = new Date();
+          const day = now.getDay();
+          const diff = (day + 1) % 7;
+          const sat = new Date(now); sat.setDate(now.getDate() - diff);
+          const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
+          const fmt = d => d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+          document.getElementById('week-range-modal').textContent = fmt(sat) + ' — ' + fmt(fri);
+        })();
+      <\/script>`
+    }
+  };
+
+  // Default for unregistered modals
+  function showModal(key) {
+    const data = modalData[key] || {
+      title: key.replace(/-/g,' ').toUpperCase(),
+      body: '<p style="color:var(--text2)">Konten untuk halaman ini akan segera tersedia. Silakan tambahkan link atau dokumen yang relevan.</p>'
+    };
+    document.getElementById('modal-title').innerHTML = data.title;
+    document.getElementById('modal-body').innerHTML = data.body;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal')) {
+      document.getElementById('modal').classList.remove('open');
+    }
+  }
+
+  function calcComp() {
+    const curr = parseFloat(document.getElementById('calc-curr').value) || 0;
+    const life = parseFloat(document.getElementById('calc-life').value) || 0;
+    const daily = parseFloat(document.getElementById('calc-daily').value) || 0;
+    const res = document.getElementById('calc-result');
+    if (!curr || !life || !daily) {
+      res.style.display = 'block';
+      res.innerHTML = '<span style="color:var(--red)">⚠ Isi semua field terlebih dahulu.</span>';
+      return;
+    }
+    const remaining = life - curr;
+    if (remaining <= 0) {
+      res.style.display = 'block';
+      res.innerHTML = `<span style="color:var(--red)">⚠ Komponen sudah MELEWATI target life sebesar ${Math.abs(remaining).toLocaleString()} jam!</span>`;
+      return;
+    }
+    const days = Math.ceil(remaining / daily);
+    const dueDate = new Date(); dueDate.setDate(dueDate.getDate() + days);
+    const pct = ((curr/life)*100).toFixed(1);
+    res.style.display = 'block';
+    res.innerHTML = `
+      <div style="margin-bottom:8px;"><span style="color:var(--text3);">Sisa life:</span> <b style="color:var(--amber);">${remaining.toLocaleString()} jam</b></div>
+      <div style="margin-bottom:8px;"><span style="color:var(--text3);">Estimasi due date:</span> <b style="color:var(--green);">${dueDate.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</b></div>
+      <div style="margin-bottom:8px;"><span style="color:var(--text3);">Hari tersisa:</span> <b style="color:var(--text);">${days} hari</b></div>
+      <div><span style="color:var(--text3);">Life terpakai:</span> <b style="color:${pct>80?'var(--red)':pct>60?'var(--amber)':'var(--green)'};">${pct}%</b></div>
+    `;
+  }
+</script>
+</body>
+</html>
